@@ -27,7 +27,7 @@ app.use("/api/users", userroutes);
 app.use("/api/blogs", blogroutes);
 
 mongoose
-  .connect("mongodb://localhost:27017/blogtalentio")
+  .connect("mongodb+srv://preethi:preethi123@cluster0.csk7ao8.mongodb.net/")
   .then(() => {
     console.log("connected to db");
   })
