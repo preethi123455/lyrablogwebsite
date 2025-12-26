@@ -6,6 +6,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
+import { Server } from "socket.io";
+import http from "http";
 
 const app = express();
 app.use(
@@ -38,8 +40,7 @@ mongoose
   .catch((error) => {
     console.log(error);
   });
-import { Server } from "socket.io";
-import http from "http";
+
 
 const server = http.createServer(app);
 
@@ -57,7 +58,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5001;
+const PORT = 5001;
 server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
-export default app;
+export default server;
