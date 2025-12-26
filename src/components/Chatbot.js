@@ -1,21 +1,45 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("https://lyrablogwebsite-backend-1.onrender.com", {
-
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-});
-
 const ChatBox = ({ blogId, username }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [joined, setJoined] = useState(true);
 
+  const socketRef = useRef(null);
   const joinedRef = useRef(false);
   const storageKey = `chat-history-${blogId}`;
 
+  /* ================= SOCKET CONNECTION ================= */
+  useEffect(() => {
+    socketRef.current = io(
+      "https://lyrablogwebsite-backend-1.onrender.com",
+      {
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      }
+    );
+
+    socketRef.current.on("connect", () => {
+      console.log("🟢 Socket connected:", socketRef.current.id);
+    });
+
+    socketRef.current.on("connect_error", (err) => {
+      console.error("🔴 Socket connection error:", err.message);
+    });
+
+    socketRef.current.on("disconnect", (reason) => {
+      console.warn("⚠️ Socket disconnected:", reason);
+      joinedRef.current = false;
+    });
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
+
+  /* ================= LOAD SAVED CHAT ================= */
   useEffect(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
@@ -23,22 +47,16 @@ const ChatBox = ({ blogId, username }) => {
     }
   }, [storageKey]);
 
-
+  /* ================= JOIN ROOM & LISTEN ================= */
   useEffect(() => {
-    if (!blogId || !username || !joined) return;
+    if (!blogId || !username || !joined || !socketRef.current) return;
 
-    const joinRoom = () => {
-      if (joinedRef.current) return;
-
-      socket.emit("join", { room: blogId, username });
+    if (!joinedRef.current) {
+      socketRef.current.emit("join", {
+        room: blogId,
+        username,
+      });
       joinedRef.current = true;
-    };
-
-   
-    if (socket.connected) {
-      joinRoom();
-    } else {
-      socket.once("connect", joinRoom);
     }
 
     const handleMessage = (msg) => {
@@ -49,33 +67,31 @@ const ChatBox = ({ blogId, username }) => {
       });
     };
 
-    socket.on("message", handleMessage);
-
-    
-    socket.on("reconnect", () => {
-      joinedRef.current = false;
-      joinRoom();
-    });
+    socketRef.current.on("message", handleMessage);
 
     return () => {
-      socket.off("message", handleMessage);
-      socket.off("reconnect");
+      socketRef.current.off("message", handleMessage);
     };
   }, [blogId, username, joined, storageKey]);
 
- 
+  /* ================= SEND MESSAGE ================= */
   const sendMessage = () => {
-    if (!text.trim()) return;
-    socket.emit("send_message", { text });
+    if (!text.trim() || !socketRef.current) return;
+
+    socketRef.current.emit("send_message", { text });
     setText("");
   };
 
+  /* ================= LEAVE CHAT ================= */
   const leaveChat = () => {
-    socket.emit("leave", { room: blogId, username });
+    if (!socketRef.current) return;
+
+    socketRef.current.emit("leave");
     joinedRef.current = false;
     setJoined(false);
   };
 
+  /* ================= UI ================= */
   if (!joined) {
     return (
       <button
@@ -141,7 +157,6 @@ const ChatBox = ({ blogId, username }) => {
         ))}
       </div>
 
-      
       <div className="chat-input-row">
         <input
           type="text"
@@ -153,7 +168,6 @@ const ChatBox = ({ blogId, username }) => {
         <button onClick={sendMessage}>Send</button>
       </div>
 
-      
       <style>{`
         .chat-box {
           background: rgba(255, 255, 255, 0.12);

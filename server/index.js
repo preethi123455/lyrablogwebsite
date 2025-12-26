@@ -4,6 +4,9 @@ import http from "http";
 
 const app = express();
 const server = http.createServer(app);
+app.get("/", (req, res) => {
+  res.send("Chat server is running");
+});
 
 const io = new Server(server, {
   cors: {
@@ -91,6 +94,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(5002, () => {
-  console.log("🚀 Chat server running on port 5002");
+const PORT = process.env.PORT || 5002;
+server.listen(PORT, () => {
+  console.log("🚀 Server running on port", PORT);
 });
