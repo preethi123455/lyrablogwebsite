@@ -38,8 +38,26 @@ mongoose
   .catch((error) => {
     console.log(error);
   });
-app.listen(5001, () => {
-  console.log("server started on port 5001");
+import { Server } from "socket.io";
+import http from "http";
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "https://lyrablogwebsite-frontend.onrender.com",
+    credentials: true,
+  },
 });
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
+
+const PORT = process.env.PORT || 5001;
+server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
 export default app;
