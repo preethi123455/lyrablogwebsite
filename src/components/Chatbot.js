@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const socket = io("https://lyrablogwebsite-backend-1.onrender.com", {
-  transports: ["websocket"],
+
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
