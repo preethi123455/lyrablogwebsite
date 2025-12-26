@@ -45,8 +45,8 @@ export const loginController= async (req, res) => {
 
   res.cookie("token", token, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false, 
+    secure: true,    // must be true for HTTPS (Render)
+  sameSite: "none" // required for cross-site requests
   });
 
   res.json({
