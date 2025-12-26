@@ -10,10 +10,15 @@ import cors from "cors";
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:3001","https://lyrablogwebsite-frontend.onrender.com"],
+    origin: "https://lyrablogwebsite-frontend.onrender.com",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.options("*", cors());
+
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -27,7 +32,7 @@ app.use("/api/users", userroutes);
 app.use("/api/blogs", blogroutes);
 
 mongoose
-  .connect("mongodb+srv://preethi:preethi123@cluster0.csk7ao8.mongodb.net/")
+  .connect("mongodb+srv://preethi:preethi123@cluster0.csk7ao8.mongodb.net/blogtalentio")
   .then(() => {
     console.log("connected to db");
   })

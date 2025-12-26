@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5002", {
+const socket = io("https://lyrablogwebsite-backend-1.onrender.com", {
   transports: ["websocket"],
   reconnection: true,
   reconnectionAttempts: 5,
