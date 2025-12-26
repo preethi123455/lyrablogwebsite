@@ -23,6 +23,11 @@ const ChatBox = ({ blogId, username }) => {
 
     socketRef.current.on("connect", () => {
       console.log("🟢 Socket connected:", socketRef.current.id);
+
+      // Rejoin room after reconnect
+      if (blogId && username && joined) {
+        joinedRef.current = false;
+      }
     });
 
     socketRef.current.on("connect_error", (err) => {
@@ -52,11 +57,18 @@ const ChatBox = ({ blogId, username }) => {
     if (!blogId || !username || !joined || !socketRef.current) return;
 
     if (!joinedRef.current) {
-      socketRef.current.emit("join", {
-        room: blogId,
-        username,
-      });
-      joinedRef.current = true;
+      socketRef.current.emit(
+        "join",
+        { room: blogId, username },
+        (res) => {
+          if (res?.ok) {
+            console.log("✅ Joined room:", blogId);
+            joinedRef.current = true;
+          } else {
+            console.error("❌ Failed to join room");
+          }
+        }
+      );
     }
 
     const handleMessage = (msg) => {
@@ -67,6 +79,7 @@ const ChatBox = ({ blogId, username }) => {
       });
     };
 
+    socketRef.current.off("message"); // prevent duplicate listeners
     socketRef.current.on("message", handleMessage);
 
     return () => {
